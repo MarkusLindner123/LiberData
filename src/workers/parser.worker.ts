@@ -1,44 +1,79 @@
+/// <reference lib="webworker" />
 import * as Comlink from 'comlink';
+// We import the type only to keep the worker lightweight
+import type { Database } from '@sqlite.org/sqlite-wasm';
 
-/**
- * The ParserWorker handles heavy data processing in a background thread
- * to ensure the UI remains responsive even when handling multi-GB files.
- */
+let db: any = null;
+
 const parserWorker = {
-  async processFile(file: File) {
-    console.log(`[Worker] Starting ingestion: ${file.name} (${file.size} bytes)`);
+  async initDb() {
+    if (db) return;
 
-    // Use the Stream API to process the file in chunks without overloading memory
-    const stream = file.stream();
-    const reader = stream.getReader();
-    let bytesProcessed = 0;
+    // Wir nutzen den absoluten Pfad basierend auf der aktuellen URL
+    const origin = self.location.origin;
+    const wasmUrl = `${origin}/jswasm/sqlite3.wasm`;
+    const jsUrl = `${origin}/jswasm/sqlite3.js`;
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    // FIX: sqlite3.js überschreibt die locateFile config, wenn wir sie an sqliteInitModule übergeben.
+    // Stattdessen müssen wir den globalen State `sqlite3InitModuleState` setzen.
 
-      bytesProcessed += value.length;
-      
-      // Calculate progress and log for debugging
-      const progress = Math.round((bytesProcessed / file.size) * 100);
-      
-      /**
-       * DATA ANALYST NOTE:
-       * Insert logic for pattern matching or JSON chunking here.
-       * 'value' is a Uint8Array containing raw file data.
-       */
-       
-      if (progress % 10 === 0) {
-        console.log(`[Worker] Progress: ${progress}%`);
+    // Debug helper
+    const originalFetch = self.fetch;
+    self.fetch = async (input, init) => {
+      console.log('[Worker] fetch intercepted:', input);
+      // Fallback: Wenn input sqlite3.wasm ist, nutze die absolute URL
+      if (typeof input === 'string' && input.endsWith('sqlite3.wasm')) {
+        console.log('[Worker] Redirecting fetch to:', wasmUrl);
+        return originalFetch(wasmUrl, init);
       }
-    }
-
-    return {
-      success: true,
-      recordsFound: 0, // Placeholder for actual parsed record count
-      timestamp: new Date().toISOString()
+      return originalFetch(input, init);
     };
+
+    // @ts-ignore
+    self.sqlite3InitModuleState = {
+      debugModule: (...args: any[]) => console.log('[SQLite3 Debug]', ...args),
+      urlParams: new Map([
+        ['sqlite3.wasm', wasmUrl],
+        ['./sqlite3.wasm', wasmUrl],
+        ['/sqlite3.wasm', wasmUrl]
+      ])
+    };
+
+    console.log('[Worker] GLOBAL CHECK:', self === globalThis);
+    // @ts-ignore
+    console.log('[Worker] sqlite3InitModuleState set:', self.sqlite3InitModuleState);
+
+    console.log('[Worker] Loading SQLite from:', jsUrl);
+    importScripts(jsUrl);
+
+    try {
+      console.log('[Worker] Initializing SQLite module...');
+      // @ts-ignore
+      const sqlite3 = await sqlite3InitModule({
+        print: console.log,
+        printErr: console.error,
+      });
+
+      if ('opfs' in sqlite3) {
+        db = new sqlite3.oo1.OpfsDb('/liberdata.sqlite3');
+        console.log('✅ SQLite OPFS Ready');
+      } else {
+        db = new sqlite3.oo1.DB();
+        console.log('⚠️ SQLite In-Memory Ready');
+      }
+
+      db.exec("CREATE TABLE IF NOT EXISTS staging_data (id INTEGER PRIMARY KEY, raw_json TEXT)");
+    } catch (err) {
+      console.error('❌ SQLite Init Error:', err);
+      throw err; // Damit wir den Fehler im UI sehen
+    }
+  },
+  async processFile(file: File) {
+    await this.initDb();
+    console.log('[Worker] Processing:', file.name);
+    return { success: true, message: "Datei empfangen und DB bereit" };
   }
+
 };
 
 Comlink.expose(parserWorker);

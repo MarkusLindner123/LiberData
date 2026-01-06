@@ -5,9 +5,10 @@ const nextConfig: NextConfig = {
   output: 'export',
 
   // React 19 Compiler
+  // @ts-expect-error: reactCompiler is not yet in the Next.js types
+  reactCompiler: true,
+
   experimental: {
-    // @ts-expect-error: reactCompiler is not yet in the Next.js types
-    reactCompiler: true,
   },
 
   // These headers are MANDATORY for SQLite-WASM with OPFS support

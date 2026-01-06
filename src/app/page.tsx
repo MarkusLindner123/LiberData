@@ -1,33 +1,50 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import * as Comlink from 'comlink';
 
 export default function Home() {
   const [status, setStatus] = useState<string>('System Idle');
 
-  /**
-   * Handles the file selection and offloads the parsing task to the Web Worker.
-   */
+  // We memoize the worker to prevent "undefined" errors during re-renders
+  const { api, worker } = useMemo(() => {
+    if (typeof window === 'undefined') return { api: null, worker: null };
+
+    const workerInstance = new Worker(
+      new URL('../workers/parser.worker.ts', import.meta.url)
+    );
+    return {
+      worker: workerInstance,
+      api: Comlink.wrap<any>(workerInstance)
+    };
+  }, []);
+
+  // Ersetze den Worker-Teil in deiner page.tsx durch diesen sichereren Weg:
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setStatus('Processing...');
-
-    // Initialize the Web Worker using the native URL constructor
-    const worker = new Worker(new URL('../workers/parser.worker.ts', import.meta.url));
-
-    // Wrap the worker with Comlink for easy-to-use proxy communication
-    const api = Comlink.wrap<any>(worker);
+    setStatus('Initializing Worker...');
 
     try {
-      // The heavy lifting happens in the background. UI thread is not blocked.
+      // Worker direkt im Handler erstellen, um sicherzugehen, dass er frisch ist
+      // In page.tsx innerhalb von handleFileUpload
+      const worker = new Worker(
+        new URL('../workers/parser.worker.ts', import.meta.url),
+        { type: 'module' } // <--- DAS HIER IST DER SCHLÜSSEL
+      );
+      const api = Comlink.wrap<any>(worker);
+
+      // Teste erst die Verbindung, bevor du das File schickst
+      setStatus('Connecting to SQLite...');
+      await api.initDb();
+
+      setStatus('Parsing File...');
       const result = await api.processFile(file);
-      setStatus(`Success: Extracted ${result.recordsFound} entries.`);
+      setStatus(`Success: ${result.message}`);
     } catch (error) {
-      console.error('[UI Error]', error);
-      setStatus('Processing failed. Check console for details.');
+      console.error('Worker Crash:', error);
+      setStatus('Worker Error - Check Console');
     }
   };
 
