@@ -22,7 +22,7 @@ We use a high-performance, modern stack to ensure privacy and scalability:
 
 ## 🛠️ Project Roadmap
 - [ ] **Phase 1:** Core Architecture (SQLite-WASM + OPFS Integration).
-- [ ] **Phase 2:** High-Performance Parser Engine (Google Takeout & Meta).
+- [ ] **Phase 2:** High-Performance Parser Engine (Google Takeout)
 - [ ] **Phase 3:** Visual Insights Dashboard (Location history, Social graphs).
 - [ ] **Phase 4:** Interoperability API (Local interface for 3rd party apps).
 
