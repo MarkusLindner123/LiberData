@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛡️ LiberData: The Portable Open Source Data Vault
 
-## Getting Started
+> **Reclaim your digital history. Own your data. Unlock the future of personal AI.**
 
-First, run the development server:
+LiberData is a **local-first, privacy-by-design** application that empowers users to extract their personal history from proprietary silos (Google, Meta, LinkedIn) and store it in a secure, standardized format—locally on their device.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 The Mission
+While GDPR (Art. 20) grants us the right to data portability, the actual files provided (JSON/CSV exports) are often cryptic and unusable for non-technical citizens. **LiberData acts as the universal translator and secure safe for your digital self.**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Core Pillars:
+* **100% Client-Side:** No data ever leaves your machine. Processing happens entirely in the browser.
+* **User Sovereignty:** Convert fragmented exports into a unified, machine-readable SQLite database.
+* **PWA Ready:** Installable on any device as a Progressive Web App for offline-first access.
+* **Public Good:** Fully open-source (AGPLv3) and focused on long-term digital commons.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏗️ Technical Stack
+We use a high-performance, modern stack to ensure privacy and scalability:
+* **Framework:** [Next.js](https://nextjs.org/) (Static Export) & [Tailwind CSS](https://tailwindcss.com/)
+* **Storage:** [SQLite-WASM](https://sqlite.org/wasm) with **Origin Private File System (OPFS)** for robust, local SQL queries.
+* **Concurrency:** [Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) for non-blocking stream-parsing of multi-gigabyte data exports.
+* **Standards:** Built on **JSON-LD** principles for future interoperability with the Next Generation Internet (NGI) ecosystem.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Project Roadmap
+- [ ] **Phase 1:** Core Architecture (SQLite-WASM + OPFS Integration).
+- [ ] **Phase 2:** High-Performance Parser Engine (Google Takeout & Meta).
+- [ ] **Phase 3:** Visual Insights Dashboard (Location history, Social graphs).
+- [ ] **Phase 4:** Interoperability API (Local interface for 3rd party apps).
 
-## Learn More
+## 👥 Team
+* **Markus Lindner:** Lead Full Stack Developer & Infrastructure Specialist.
+* **Senior Data Analyst:** Specialist for large-scale data normalization and pattern recognition.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📄 License & Funding
+This project is an open-source contribution to the **NGI Zero Commons Fund**.  
+License: **GNU AGPLv3**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Developed with the goal of building a more human-centric internet.*
